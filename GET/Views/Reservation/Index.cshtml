@@ -1,0 +1,40 @@
+﻿@model IEnumerable<GET.ViewModels.ReservationViewModel>
+@{
+    ViewData["Title"] = "Reservations";
+}
+
+<h2>Reservations</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Reservation Date</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var reservation in Model)
+        {
+            <tr data-id="@reservation.Id">
+                <td>@reservation.BookTitle</td>
+                <td>@reservation.BookAuthor</td>
+                <td>@reservation.ReservationDate.ToShortDateString()</td>
+                <td>@(reservation.DueDate == DateTime.MinValue ? "Not set" : reservation.DueDate.ToShortDateString())</td>
+                <td>@(reservation.IsReturned ? "Returned" : (reservation.Status == ReservationStatus.PENDING ? "Pending Approval" : (reservation.Status == ReservationStatus.APPROVED ? "Active" : "Rejected")))</td>
+                <td>
+                    <form method="post" action="/Reservation/CancelReservation">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="reservationId" value="@reservation.Id" />
+                        <button type="submit" class="btn @(reservation.Status != ReservationStatus.PENDING || reservation.IsReturned ? "btn-secondary" : "btn-danger")" @(reservation.Status != ReservationStatus.PENDING || reservation.IsReturned ? "disabled" : "")>Cancel</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/libraryHub.js"></script>

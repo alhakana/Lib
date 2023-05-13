@@ -1,0 +1,50 @@
+﻿@model IEnumerable<GET.ViewModels.BookViewModel>
+@{
+    ViewData["Title"] = "Books";
+}
+
+<h2>Books</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Available Copies</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in Model)
+        {
+            <tr>
+                <td>@book.Title</td>
+                <td>@book.Author</td>
+                <td>@book.AvailableCopies</td>
+                @if (User.IsInRole("Librarian"))
+                {
+                    <td>
+                        <a href="/Book/Edit/@book.Id" class="btn btn-sm btn-primary">Edit</a>
+                        <a href="/Book/Delete/@book.Id" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                }
+                <td>
+                    @if (!User.IsInRole("Librarian") && User.Identity.IsAuthenticated)
+                    {
+                        var reserveButtonClass = "btn btn-sm " + (book.AvailableCopies > 0 ? "btn-primary" : "btn-secondary");
+                        <form asp-controller="Book" asp-action="Reserve" method="post">
+                            <input type="hidden" name="bookId" value="@book.Id" />
+                            <button type="submit" class="@reserveButtonClass" @(book.AvailableCopies > 0 ? "" : "disabled")>Reserve</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (User.IsInRole("Librarian"))
+{
+    <div class="text-right">
+        <a href="/Book/Create" class="btn btn-success">Create</a>
+    </div>
+}

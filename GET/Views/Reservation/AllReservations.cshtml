@@ -1,0 +1,62 @@
+﻿@model IEnumerable<GET.ViewModels.ReservationViewModel>
+@{
+    ViewData["Title"] = "All Reservations";
+}
+
+<h2>All Reservations</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Book Title</th>
+            <th>Author</th>
+            <th>User</th>
+            <th>Reservation Date</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var reservation in Model)
+        {
+            <tr>
+                <td>@reservation.BookTitle</td>
+                <td>@reservation.BookAuthor</td>
+                <td>@reservation.UserName</td>
+                <td>@reservation.ReservationDate.ToShortDateString()</td>
+                <td>@(reservation.DueDate == DateTime.MinValue ? "Not set" : reservation.DueDate.ToShortDateString())</td>
+                <td>@(reservation.IsReturned ? "Returned" : (reservation.Status == ReservationStatus.PENDING ? "Pending Approval" : (reservation.Status == ReservationStatus.APPROVED ? "Active" : "Rejected")))</td>
+                <td>
+                    @if (!reservation.IsReturned)
+                    {
+                        if (reservation.Status == ReservationStatus.PENDING)
+                        {
+                            <form asp-controller="Reservation" asp-action="ApproveReservation" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="reservationId" value="@reservation.Id" />
+                                <button type="submit" class="btn btn-sm btn-primary">Approve</button>
+                            </form>
+                            <form asp-controller="Reservation" asp-action="RejectReservation" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="reservationId" value="@reservation.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                            </form>
+                        }
+                        else if (reservation.Status == ReservationStatus.APPROVED)
+                        {
+                            <form asp-controller="Reservation" asp-action="ReturnBook" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="reservationId" value="@reservation.Id" />
+                                <button type="submit" class="btn btn-sm btn-success" id="return-button-@reservation.Id">Return</button>
+                            </form>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/libraryHub.js"></script>
