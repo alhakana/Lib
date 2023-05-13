@@ -101,16 +101,27 @@ namespace GET.Controllers
             }
 
             var userId = _userManager.GetUserId(User);
+            var reservations = await _libraryService.GetReservationsByUserIdAsync(userId);
+            if (reservations.Count(reservation => reservation.Status == ReservationStatus.PENDING || reservation.Status == ReservationStatus.APPROVED) > 4)
+            {
+                // Error message
+                TempData["ErrorMessage"] = "You have reached the maximum number of reservations.";
+                return RedirectToAction("Index");
+            }
+
             var reservation = await _libraryService.RequestReservationAsync(bookId, userId);
 
             if (reservation != null)
             {
-                var librerianIds = (await _userManager.GetUsersInRoleAsync("Librarian"))
-                    .Select(l => l.Id);
+                    var librerianIds = (await _userManager.GetUsersInRoleAsync("Librarian"))
+                        .Select(l => l.Id);
 
-                await _hubContext.Clients.Users(librerianIds).SendAsync("CreateReservation", reservation.ToViewModel());
+                    await _hubContext.Clients.Users(librerianIds).SendAsync("CreateReservation", reservation.ToViewModel());
+
+                // Success message
+                TempData["SuccessMessage"] = "Reservation successful!";
             }
-
+            
             return RedirectToAction("Index");
         }
     }
