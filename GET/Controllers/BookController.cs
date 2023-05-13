@@ -113,10 +113,10 @@ namespace GET.Controllers
 
             if (reservation != null)
             {
-                    var librerianIds = (await _userManager.GetUsersInRoleAsync("Librarian"))
+                var librerianIds = (await _userManager.GetUsersInRoleAsync("Librarian"))
                         .Select(l => l.Id);
 
-                    await _hubContext.Clients.Users(librerianIds).SendAsync("CreateReservation", reservation.ToViewModel());
+                await _hubContext.Clients.Users(librerianIds).SendAsync("CreateReservation", reservation.ToViewModel());
 
                 // Success message
                 TempData["SuccessMessage"] = "Reservation successful!";
